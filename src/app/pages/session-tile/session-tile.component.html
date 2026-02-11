@@ -3,17 +3,7 @@
     <h2 class="text-xl font-semibold text-gray-800">{{ session().name }}</h2>
     <span
       class="px-3 py-1 rounded-full text-xs font-medium {{ statusClass() }}">
-      @switch (session().status) {
-        @case (TradingSessionStatus.Active) {
-          Active
-        }
-        @case (TradingSessionStatus.Scheduled) {
-          Scheduled
-        }
-        @case (TradingSessionStatus.Completed) {
-          Completed
-        }
-      }
+      {{session().status}}
     </span>
   </div>
 
@@ -39,8 +29,9 @@
     </div>
   </div>
 
-  <button
-    class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+  <a
+    [routerLink]="['/session', session().id]"
+    class="block w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center">
     Open Session
-  </button>
+  </a>
 </div>

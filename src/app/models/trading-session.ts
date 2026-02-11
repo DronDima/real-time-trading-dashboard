@@ -1,7 +1,9 @@
+import { Offer } from "./offer";
+
 export enum TradingSessionStatus {
-  Active = 'active',
-  Scheduled = 'scheduled',
-  Completed = 'completed',
+  Active = 'Active',
+  Scheduled = 'Scheduled',
+  Completed = 'Completed',
 }
 
 export interface TradingSession {
@@ -12,4 +14,5 @@ export interface TradingSession {
   status: TradingSessionStatus;
   products: string[];
   createdAt: string;
+  offers: Offer[];
 }
