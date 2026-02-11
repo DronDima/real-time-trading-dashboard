@@ -7,11 +7,16 @@ import { tradingSessionAdapter, tradingSessionFeature } from './trading-session.
 const selectRouterState = createFeatureSelector<RouterReducerState>('router');
 const { selectRouteParam } = getRouterSelectors(selectRouterState);
 
-const { selectTradingSessionState, selectLoading, selectError, selectCurrentSessionId } =
+const { selectTradingSessionState, selectLoading, selectError } =
   tradingSessionFeature;
 
 const { selectEntities: selectOfferEntities } = tradingSessionAdapter.getSelectors(
   selectTradingSessionState
+);
+
+export const selectCurrentSessionId = createSelector(
+  selectTradingSessionState,
+  state => state.currentSessionId
 );
 
 export const selectSessionsMap = createSelector(
@@ -73,6 +78,11 @@ export const selectCurrentSessionViewModel = createSelector(
 export const selectSessionLoading = selectLoading;
 
 export const selectSessionError = selectError;
+
+export const selectWebSocketStatus = createSelector(
+  selectTradingSessionState,
+  state => state.websocketStatus
+);
 
 export const selectRouteSessionId = createSelector(selectRouteParam('id'), id => {
   const sessionId = id ? Number(id) : null;

@@ -26,13 +26,24 @@ public class OfferGenerationBackgroundService : BackgroundService
             try
             {
                 var allOffers = _offerService.GetAllOffers();
+                var action = _random.Next(3);
 
-                if (allOffers.Count > 0 && _random.Next(2) == 0)
+                if (allOffers.Count > 0 && action == 0)
                 {
                     var updatedOffer = _offerGeneratorService.GenerateUpdateForExistingOffer(allOffers);
                     _offerService.UpdateOffer(updatedOffer);
                     _logger.LogInformation("Updated offer {OfferId} for trading session {TradingSessionId}",
                         updatedOffer.Id, updatedOffer.TradingSessionId);
+                }
+                else if (allOffers.Count > 0 && action == 1)
+                {
+                    var offerToDelete = allOffers[_random.Next(allOffers.Count)];
+                    var deleted = _offerService.DeleteOffer(offerToDelete.Id);
+                    if (deleted)
+                    {
+                        _logger.LogInformation("Deleted offer {OfferId} for trading session {TradingSessionId}",
+                            offerToDelete.Id, offerToDelete.TradingSessionId);
+                    }
                 }
                 else
                 {

@@ -1,5 +1,6 @@
 import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import { createFeature, createReducer, on } from '@ngrx/store';
+import { HubConnectionState } from '@microsoft/signalr';
 
 import { Offer } from '../../models/offer';
 import { TradingSession } from '../../models/trading-session';
@@ -11,6 +12,7 @@ export interface TradingSessionState extends EntityState<Offer> {
   currentSessionId: number | null;
   loading: boolean;
   error: string | null;
+  websocketStatus: HubConnectionState;
 }
 
 export const tradingSessionAdapter = createEntityAdapter<Offer>();
@@ -20,7 +22,8 @@ const initialState: TradingSessionState = tradingSessionAdapter.getInitialState(
   offersBySession: {},
   currentSessionId: null,
   loading: false,
-  error: null
+  error: null,
+  websocketStatus: HubConnectionState.Disconnected
 });
 
 const reducer = createReducer(
@@ -62,7 +65,60 @@ const reducer = createReducer(
       loading: false,
       error
     };
-  })
+  }),
+  on(TradingSessionActions.offerCreated, (state, { offer }) => {
+    const sessionId = offer.tradingSessionId;
+    const existingOfferIds = state.offersBySession[sessionId] || [];
+    
+    if (existingOfferIds.includes(offer.id)) {
+      return state;
+    }
+
+    const newOfferIds = [...existingOfferIds, offer.id];
+    
+    return tradingSessionAdapter.addOne(offer, {
+      ...state,
+      offersBySession: {
+        ...state.offersBySession,
+        [sessionId]: newOfferIds
+      }
+    });
+  }),
+  on(TradingSessionActions.offerUpdated, (state, { offer }) => {
+    const sessionId = offer.tradingSessionId;
+    const existingOfferIds = state.offersBySession[sessionId] || [];
+    
+    if (!existingOfferIds.includes(offer.id)) {
+      return state;
+    }
+
+    return tradingSessionAdapter.updateOne(
+      { id: offer.id, changes: offer },
+      state
+    );
+  }),
+  on(TradingSessionActions.offerDeleted, (state, { id }) => {
+    const offer = state.entities[id];
+    if (!offer) {
+      return state;
+    }
+
+    const sessionId = offer.tradingSessionId;
+    const existingOfferIds = state.offersBySession[sessionId] || [];
+    const newOfferIds = existingOfferIds.filter(offerId => offerId !== id);
+
+    return tradingSessionAdapter.removeOne(id, {
+      ...state,
+      offersBySession: {
+        ...state.offersBySession,
+        [sessionId]: newOfferIds
+      }
+    });
+  }),
+  on(TradingSessionActions.webSocketStatusChanged, (state, { status }) => ({
+    ...state,
+    websocketStatus: status
+  }))
 );
 
 export const tradingSessionFeature = createFeature({

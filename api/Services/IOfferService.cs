@@ -9,5 +9,6 @@ public interface IOfferService
     Offer? GetOfferById(int id);
     Offer AddOffer(Offer offer);
     Offer UpdateOffer(Offer offer);
+    bool DeleteOffer(int id);
     void InitializeOffers(List<Offer> initialOffers);
 }
