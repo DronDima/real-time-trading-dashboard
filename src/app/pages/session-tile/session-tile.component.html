@@ -1,0 +1,46 @@
+<div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+  <div class="flex justify-between items-start mb-4">
+    <h2 class="text-xl font-semibold text-gray-800">{{ session().name }}</h2>
+    <span
+      class="px-3 py-1 rounded-full text-xs font-medium {{ statusClass() }}">
+      @switch (session().status) {
+        @case (TradingSessionStatus.Active) {
+          Active
+        }
+        @case (TradingSessionStatus.Scheduled) {
+          Scheduled
+        }
+        @case (TradingSessionStatus.Completed) {
+          Completed
+        }
+      }
+    </span>
+  </div>
+
+  <div class="space-y-3 mb-4">
+    <div class="text-sm text-gray-600">
+      <span class="font-medium">Start:</span>
+      <span class="ml-2">{{ session().startTime | formatDate }}</span>
+    </div>
+    <div class="text-sm text-gray-600">
+      <span class="font-medium">End:</span>
+      <span class="ml-2">{{ session().endTime | formatDate }}</span>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <p class="text-sm font-medium text-gray-700 mb-2">Products:</p>
+    <div class="flex flex-wrap gap-2">
+      @for (product of session().products; track product) {
+        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+          {{ product }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <button
+    class="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+    Open Session
+  </button>
+</div>
