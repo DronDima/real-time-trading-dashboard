@@ -86,9 +86,18 @@
           </div>
         }
       </div>
-    } @else {
+    } @else if (isLoading()) {
       <div class="flex justify-center items-center py-16">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    } @else if (error(); as errorMessage) {
+      <div class="flex flex-col items-center py-16">
+        <p class="text-red-600 font-medium mb-2">Unable to load session data</p>
+        <p class="text-sm text-gray-500">{{ errorMessage }}</p>
+      </div>
+    } @else {
+      <div class="flex justify-center items-center py-16">
+        <p class="text-gray-500">No session selected.</p>
       </div>
     }
   </div>
