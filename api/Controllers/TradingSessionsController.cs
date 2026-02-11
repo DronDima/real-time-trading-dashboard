@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TradingDashboardApi.Models;
+using TradingDashboardApi.Services;
 
 namespace TradingDashboardApi.Controllers;
 
@@ -41,15 +42,12 @@ public class TradingSessionsController : ControllerBase
         }
     };
 
-    private static readonly List<Offer> Offers = new()
+    private readonly IOfferService _offerService;
+
+    public TradingSessionsController(IOfferService offerService)
     {
-        new Offer { Id = 1, TradingSessionId = 1, Product = "Grain", Price = 150.50m, Volume = 1000, UpdatedAt = "2026-02-11T09:15:00Z" },
-        new Offer { Id = 2, TradingSessionId = 1, Product = "Oil", Price = 75.25m, Volume = 500, UpdatedAt = "2026-02-11T09:20:00Z" },
-        new Offer { Id = 3, TradingSessionId = 1, Product = "Gold", Price = 2000.00m, Volume = 100, UpdatedAt = "2026-02-11T09:25:00Z" },
-        new Offer { Id = 4, TradingSessionId = 2, Product = "Silver", Price = 25.75m, Volume = 2000, UpdatedAt = "2026-02-11T13:10:00Z" },
-        new Offer { Id = 5, TradingSessionId = 2, Product = "Copper", Price = 4.50m, Volume = 5000, UpdatedAt = "2026-02-11T13:15:00Z" },
-        new Offer { Id = 6, TradingSessionId = 3, Product = "Platinum", Price = 950.00m, Volume = 50, UpdatedAt = "2026-02-10T18:30:00Z" }
-    };
+        _offerService = offerService;
+    }
 
     [HttpGet]
     public ActionResult<IEnumerable<TradingSession>> GetSessions()
@@ -66,7 +64,7 @@ public class TradingSessionsController : ControllerBase
             return NotFound();
         }
         
-        var sessionOffers = Offers.Where(o => o.TradingSessionId == id).ToList();
+        var sessionOffers = _offerService.GetOffersByTradingSessionId(id);
         session.Offers = sessionOffers;
         
         return Ok(session);
