@@ -2,7 +2,7 @@
 
 > A high-performance, real-time trading dashboard built with modern web technologies, demonstrating expertise in reactive programming, state management, and WebSocket communication.
 
-![Demo Placeholder](demo.gif)
+![Demo Placeholder](dashboard-demo.gif)
 
 ## 🎯 Overview
 
