@@ -8,10 +8,13 @@ import { TradingSessionActions } from './trading-session.actions';
 
 export interface TradingSessionState extends EntityState<Offer> {
   sessions: Record<number, TradingSession>;
+  sessionsList: TradingSession[];
   offersBySession: Record<number, number[]>;
   currentSessionId: number | null;
   loading: boolean;
+  sessionsListLoading: boolean;
   error: string | null;
+  sessionsListError: string | null;
   websocketStatus: HubConnectionState;
 }
 
@@ -19,10 +22,13 @@ export const tradingSessionAdapter = createEntityAdapter<Offer>();
 
 const initialState: TradingSessionState = tradingSessionAdapter.getInitialState({
   sessions: {},
+  sessionsList: [],
   offersBySession: {},
   currentSessionId: null,
   loading: false,
+  sessionsListLoading: false,
   error: null,
+  sessionsListError: null,
   websocketStatus: HubConnectionState.Disconnected
 });
 
@@ -157,6 +163,22 @@ const reducer = createReducer(
   on(TradingSessionActions.webSocketStatusChanged, (state, { status }) => ({
     ...state,
     websocketStatus: status
+  })),
+  on(TradingSessionActions.loadSessions, state => ({
+    ...state,
+    sessionsListLoading: true,
+    sessionsListError: null
+  })),
+  on(TradingSessionActions.loadSessionsSuccess, (state, { sessions }) => ({
+    ...state,
+    sessionsList: sessions,
+    sessionsListLoading: false,
+    sessionsListError: null
+  })),
+  on(TradingSessionActions.loadSessionsFailure, (state, { error }) => ({
+    ...state,
+    sessionsListLoading: false,
+    sessionsListError: error
   }))
 );
 

@@ -1,10 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Store } from '@ngrx/store';
 
-import { TradingSession } from '../../models/trading-session';
+import { RootState } from '../../store/root.state';
+import {
+  selectSessionsList,
+  selectSessionsListLoading,
+  selectSessionsListError
+} from '../../store/trading-session/trading-session.selectors';
+import { TradingSessionActions } from '../../store/trading-session/trading-session.actions';
 import { SessionTileComponent } from '../session-tile/session-tile.component';
-import { TradingSessionsService } from '../../services/trading-sessions.service';
 
 @Component({
   selector: 'app-home',
@@ -15,10 +21,21 @@ import { TradingSessionsService } from '../../services/trading-sessions.service'
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
-  private readonly tradingSessionsService = inject(TradingSessionsService);
+  private readonly store = inject(Store<RootState>);
 
-  protected readonly sessions = toSignal(
-    this.tradingSessionsService.getSessions(),
-    { initialValue: [] as TradingSession[] }
-  );
+  protected readonly sessions = toSignal(this.store.select(selectSessionsList), {
+    initialValue: []
+  });
+
+  protected readonly isLoading = toSignal(this.store.select(selectSessionsListLoading), {
+    initialValue: false
+  });
+
+  protected readonly error = toSignal(this.store.select(selectSessionsListError), {
+    initialValue: null
+  });
+
+  constructor() {
+    this.store.dispatch(TradingSessionActions.loadSessions());
+  }
 }

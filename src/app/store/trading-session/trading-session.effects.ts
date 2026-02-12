@@ -107,10 +107,26 @@ export class TradingSessionEffects {
     )
   );
 
+  readonly loadSessions$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(TradingSessionActions.loadSessions),
+      switchMap(() =>
+        this.tradingSessionsService.getSessions().pipe(
+          map(sessions => TradingSessionActions.loadSessionsSuccess({ sessions })),
+          catchError(error => this.handleLoadSessionsError(error))
+        )
+      )
+    )
+  );
+
   private handleLoadSessionError(sessionId: number, error: any) {
     let errorMessage = 'Unable to load session';
     if (error?.status === 404) {
       errorMessage = 'Session not found';
+    } else if (error?.status === 500) {
+      errorMessage = 'Server error occurred';
+    } else if (error?.status === 0) {
+      errorMessage = 'Network error. Please check your connection';
     } else if (error?.message) {
       errorMessage = error.message;
     }
@@ -121,5 +137,18 @@ export class TradingSessionEffects {
         error: errorMessage
       })
     );
+  }
+
+  private handleLoadSessionsError(error: any) {
+    let errorMessage = 'Unable to load trading sessions';
+    if (error?.status === 500) {
+      errorMessage = 'Server error occurred';
+    } else if (error?.status === 0) {
+      errorMessage = 'Network error. Please check your connection';
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+    console.error('Error loading sessions:', error);
+    return of(TradingSessionActions.loadSessionsFailure({ error: errorMessage }));
   }
 }

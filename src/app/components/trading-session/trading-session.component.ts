@@ -11,7 +11,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
+import { Subject, debounceTime } from 'rxjs';
 
 import { HubConnectionState } from '@microsoft/signalr';
 
@@ -81,15 +83,22 @@ export class TradingSessionComponent {
   protected readonly sortColumn = signal<SortColumn | null>(null);
   protected readonly sortDirection = signal<SortDirection>(null);
   protected readonly filterText = signal<string>('');
+  private readonly filterTextSubject = new Subject<string>();
+  private readonly filterTextDebounced = toSignal(
+    this.filterTextSubject.pipe(
+      debounceTime(300),
+      takeUntilDestroyed(this.destroyRef)
+    ),
+    { initialValue: '' }
+  );
 
   protected readonly filteredAndSortedOffers = computed(() => {
     const sess = this.session();
     if (!sess?.offers?.length) return [];
 
-
     return filterAndSortOffers(
       sess.offers,
-      this.filterText(),
+      this.filterTextDebounced(),
       this.sortColumn(),
       this.sortDirection()
     );
@@ -118,12 +127,14 @@ export class TradingSessionComponent {
 
   protected onFilterChange(value: string): void {
     this.filterText.set(value);
+    this.filterTextSubject.next(value);
   }
 
   constructor() {
     this.destroyRef.onDestroy(() => {
       this.indicatorTimeoutsByOfferId.forEach(t => clearTimeout(t));
       this.indicatorTimeoutsByOfferId.clear();
+      this.filterTextSubject.complete();
     });
 
     effect(() => {

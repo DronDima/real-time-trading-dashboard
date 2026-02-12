@@ -79,6 +79,21 @@ export const selectSessionLoading = selectLoading;
 
 export const selectSessionError = selectError;
 
+export const selectSessionsList = createSelector(
+  selectTradingSessionState,
+  state => state.sessionsList
+);
+
+export const selectSessionsListLoading = createSelector(
+  selectTradingSessionState,
+  state => state.sessionsListLoading
+);
+
+export const selectSessionsListError = createSelector(
+  selectTradingSessionState,
+  state => state.sessionsListError
+);
+
 export const selectWebSocketStatus = createSelector(
   selectTradingSessionState,
   state => state.websocketStatus
