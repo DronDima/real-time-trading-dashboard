@@ -86,15 +86,13 @@ export class TradingSessionComponent {
     const sess = this.session();
     if (!sess?.offers?.length) return [];
 
-    const res = filterAndSortOffers(
+
+    return filterAndSortOffers(
       sess.offers,
       this.filterText(),
       this.sortColumn(),
       this.sortDirection()
     );
-    console.log(res);
-
-    return res;
   });
 
   protected getPriceIndicator(offerId: number): 'up' | 'down' | null {

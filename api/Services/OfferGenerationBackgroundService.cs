@@ -32,7 +32,7 @@ public class OfferGenerationBackgroundService : BackgroundService
                 foreach (var sessionId in SessionIds)
                 {
                     var sessionOffers = _offerService.GetOffersByTradingSessionId(sessionId);
-                    var changeCount = _random.Next(0, 6);
+                    var changeCount = _random.Next(0, 4);
 
                     for (var i = 0; i < changeCount; i++)
                     {
@@ -63,7 +63,7 @@ public class OfferGenerationBackgroundService : BackgroundService
                     _offerService.ApplyOfferBatch(batch);
                 }
 
-                var delayMs = _random.Next(1000, 3001);
+                var delayMs = _random.Next(500, 1501);
                 await Task.Delay(delayMs, stoppingToken);
             }
             catch (Exception ex)
