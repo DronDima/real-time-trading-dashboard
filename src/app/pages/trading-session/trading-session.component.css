@@ -1,0 +1,4 @@
+.offers-grid {
+  display: grid;
+  grid-template-columns: 10% 25% 20% 15% 30%;
+}

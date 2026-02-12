@@ -11,4 +11,5 @@ public interface IOfferService
     Offer UpdateOffer(Offer offer);
     bool DeleteOffer(int id);
     void InitializeOffers(List<Offer> initialOffers);
+    void ApplyOfferBatch(OfferBatchPayload batch);
 }

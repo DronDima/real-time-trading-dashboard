@@ -69,13 +69,13 @@ const reducer = createReducer(
   on(TradingSessionActions.offerCreated, (state, { offer }) => {
     const sessionId = offer.tradingSessionId;
     const existingOfferIds = state.offersBySession[sessionId] || [];
-    
+
     if (existingOfferIds.includes(offer.id)) {
       return state;
     }
 
     const newOfferIds = [...existingOfferIds, offer.id];
-    
+
     return tradingSessionAdapter.addOne(offer, {
       ...state,
       offersBySession: {
@@ -87,7 +87,7 @@ const reducer = createReducer(
   on(TradingSessionActions.offerUpdated, (state, { offer }) => {
     const sessionId = offer.tradingSessionId;
     const existingOfferIds = state.offersBySession[sessionId] || [];
-    
+
     if (!existingOfferIds.includes(offer.id)) {
       return state;
     }
@@ -114,6 +114,45 @@ const reducer = createReducer(
         [sessionId]: newOfferIds
       }
     });
+  }),
+  on(TradingSessionActions.offerBatch, (state, { created, updated, deleted }) => {
+    let nextState = state;
+
+    for (const id of deleted) {
+      const offer = nextState.entities[id];
+      if (!offer) continue;
+      const sessionId = offer.tradingSessionId;
+      const offerIds = nextState.offersBySession[sessionId] || [];
+      nextState = tradingSessionAdapter.removeOne(id, {
+        ...nextState,
+        offersBySession: {
+          ...nextState.offersBySession,
+          [sessionId]: offerIds.filter(oid => oid !== id)
+        }
+      });
+    }
+
+    if (updated.length > 0) {
+      nextState = tradingSessionAdapter.updateMany(
+        updated.map(o => ({ id: o.id, changes: o })),
+        nextState
+      );
+    }
+
+    if (created.length > 0) {
+      nextState = tradingSessionAdapter.addMany(created, nextState);
+      const newOffersBySession = { ...nextState.offersBySession };
+      for (const offer of created) {
+        const sessionId = offer.tradingSessionId;
+        const existing = newOffersBySession[sessionId] || [];
+        if (!existing.includes(offer.id)) {
+          newOffersBySession[sessionId] = [...existing, offer.id];
+        }
+      }
+      nextState = { ...nextState, offersBySession: newOffersBySession };
+    }
+
+    return nextState;
   }),
   on(TradingSessionActions.webSocketStatusChanged, (state, { status }) => ({
     ...state,

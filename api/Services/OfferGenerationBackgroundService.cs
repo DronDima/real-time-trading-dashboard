@@ -4,6 +4,8 @@ namespace TradingDashboardApi.Services;
 
 public class OfferGenerationBackgroundService : BackgroundService
 {
+    private static readonly int[] SessionIds = { 1, 2, 3 };
+
     private readonly IOfferService _offerService;
     private readonly IOfferGeneratorService _offerGeneratorService;
     private readonly Random _random = new();
@@ -25,36 +27,44 @@ public class OfferGenerationBackgroundService : BackgroundService
         {
             try
             {
-                var allOffers = _offerService.GetAllOffers();
-                var action = _random.Next(3);
+                var batch = new OfferBatchPayload();
 
-                if (allOffers.Count > 0 && action == 0)
+                foreach (var sessionId in SessionIds)
                 {
-                    var updatedOffer = _offerGeneratorService.GenerateUpdateForExistingOffer(allOffers);
-                    _offerService.UpdateOffer(updatedOffer);
-                    _logger.LogInformation("Updated offer {OfferId} for trading session {TradingSessionId}",
-                        updatedOffer.Id, updatedOffer.TradingSessionId);
-                }
-                else if (allOffers.Count > 0 && action == 1)
-                {
-                    var offerToDelete = allOffers[_random.Next(allOffers.Count)];
-                    var deleted = _offerService.DeleteOffer(offerToDelete.Id);
-                    if (deleted)
+                    var sessionOffers = _offerService.GetOffersByTradingSessionId(sessionId);
+                    var changeCount = _random.Next(0, 6);
+
+                    for (var i = 0; i < changeCount; i++)
                     {
-                        _logger.LogInformation("Deleted offer {OfferId} for trading session {TradingSessionId}",
-                            offerToDelete.Id, offerToDelete.TradingSessionId);
+                        var action = sessionOffers.Count > 0 ? _random.Next(3) : 0;
+
+                        if (action == 0)
+                        {
+                            var newOffer = _offerGeneratorService.GenerateRandomOffer();
+                            newOffer.TradingSessionId = sessionId;
+                            batch.Created.Add(newOffer);
+                        }
+                        else if (action == 1)
+                        {
+                            var updated = _offerGeneratorService.GenerateUpdateForExistingOffer(sessionOffers);
+                            batch.Updated.Add(updated);
+                        }
+                        else
+                        {
+                            var toDelete = sessionOffers[_random.Next(sessionOffers.Count)];
+                            batch.Deleted.Add(toDelete.Id);
+                            sessionOffers = sessionOffers.Where(o => o.Id != toDelete.Id).ToList();
+                        }
                     }
                 }
-                else
+
+                if (batch.Created.Count > 0 || batch.Updated.Count > 0 || batch.Deleted.Count > 0)
                 {
-                    var newOffer = _offerGeneratorService.GenerateRandomOffer();
-                    _offerService.AddOffer(newOffer);
-                    _logger.LogInformation("Generated new offer for trading session {TradingSessionId}, product {Product}",
-                        newOffer.TradingSessionId, newOffer.Product);
+                    _offerService.ApplyOfferBatch(batch);
                 }
 
-                var delaySeconds = _random.Next(5, 11);
-                await Task.Delay(TimeSpan.FromSeconds(delaySeconds), stoppingToken);
+                var delayMs = _random.Next(1000, 3001);
+                await Task.Delay(delayMs, stoppingToken);
             }
             catch (Exception ex)
             {

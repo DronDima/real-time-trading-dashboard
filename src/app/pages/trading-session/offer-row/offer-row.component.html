@@ -1,0 +1,17 @@
+<div class="contents group">
+  <div class="py-3 px-4 text-gray-800 border-b border-gray-100 group-hover:bg-gray-50 transition-colors">{{ offer().id }}</div>
+  <div class="py-3 px-4 border-b border-gray-100 group-hover:bg-gray-50 transition-colors">
+    <span class="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm truncate max-w-full">
+      {{ offer().product }}
+    </span>
+  </div>
+  <div class="py-3 px-4 text-right font-mono text-gray-800 whitespace-nowrap border-b border-gray-100 group-hover:bg-gray-50 transition-colors">
+    <app-offer-price [price]="offer().price" [indicator]="priceIndicator()" />
+  </div>
+  <div class="py-3 px-4 text-right font-mono text-gray-800 whitespace-nowrap border-b border-gray-100 group-hover:bg-gray-50 transition-colors">
+    <app-offer-volume [volume]="offer().volume" />
+  </div>
+  <div class="py-3 px-4 text-right text-sm text-gray-500 whitespace-nowrap border-b border-gray-100 group-hover:bg-gray-50 transition-colors">
+    {{ offer().updatedAt | formatDate }}
+  </div>
+</div>

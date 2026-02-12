@@ -13,6 +13,7 @@ export const TradingSessionActions = createActionGroup({
     'Offer Created': props<{ offer: Offer }>(),
     'Offer Updated': props<{ offer: Offer }>(),
     'Offer Deleted': props<{ id: number }>(),
+    'Offer Batch': props<{ created: Offer[]; updated: Offer[]; deleted: number[] }>(),
     'WebSocket Status Changed': props<{ status: HubConnectionState }>()
   }
 });

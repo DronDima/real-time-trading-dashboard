@@ -43,7 +43,7 @@ public class OfferService : IOfferService
         offer.Id = _nextId++;
         offer.UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
         _offers.Add(offer);
-        
+
         _ = Task.Run(async () =>
         {
             var socketEvent = new
@@ -57,7 +57,7 @@ public class OfferService : IOfferService
             };
             await _hubContext.Clients.All.SendAsync("OfferEvent", JsonSerializer.Serialize(socketEvent, options));
         });
-        
+
         return offer;
     }
 
@@ -74,7 +74,7 @@ public class OfferService : IOfferService
         existingOffer.Price = offer.Price;
         existingOffer.Volume = offer.Volume;
         existingOffer.UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
-        
+
         _ = Task.Run(async () =>
         {
             var socketEvent = new
@@ -88,7 +88,7 @@ public class OfferService : IOfferService
             };
             await _hubContext.Clients.All.SendAsync("OfferEvent", JsonSerializer.Serialize(socketEvent, options));
         });
-        
+
         return existingOffer;
     }
 
@@ -101,7 +101,7 @@ public class OfferService : IOfferService
         }
 
         _offers.Remove(offerToRemove);
-        
+
         _ = Task.Run(async () =>
         {
             var socketEvent = new
@@ -115,7 +115,69 @@ public class OfferService : IOfferService
             };
             await _hubContext.Clients.All.SendAsync("OfferEvent", JsonSerializer.Serialize(socketEvent, options));
         });
-        
+
         return true;
+    }
+
+    public void ApplyOfferBatch(OfferBatchPayload batch)
+    {
+        var deletedSet = batch.Deleted.ToHashSet();
+        foreach (var id in batch.Deleted)
+        {
+            var offer = _offers.FirstOrDefault(o => o.Id == id);
+            if (offer != null)
+            {
+                _offers.Remove(offer);
+            }
+        }
+
+        foreach (var offer in batch.Updated)
+        {
+            if (deletedSet.Contains(offer.Id))
+            {
+                continue;
+            }
+
+            var existing = _offers.FirstOrDefault(o => o.Id == offer.Id);
+            if (existing != null)
+            {
+                existing.TradingSessionId = offer.TradingSessionId;
+                existing.Product = offer.Product;
+                existing.Price = offer.Price;
+                existing.Volume = offer.Volume;
+                existing.UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            }
+        }
+
+        var created = new List<Offer>();
+        foreach (var offer in batch.Created)
+        {
+            offer.Id = _nextId++;
+            offer.UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            _offers.Add(offer);
+            created.Add(offer);
+        }
+
+        var updatedIds = batch.Updated.Where(o => !deletedSet.Contains(o.Id)).Select(o => o.Id).ToHashSet();
+        var updatedToSend = _offers.Where(o => updatedIds.Contains(o.Id)).ToList();
+
+        _ = Task.Run(async () =>
+        {
+            var socketEvent = new
+            {
+                type = "OFFER_BATCH",
+                payload = new
+                {
+                    created,
+                    updated = updatedToSend,
+                    deleted = batch.Deleted
+                }
+            };
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            await _hubContext.Clients.All.SendAsync("OfferEvent", JsonSerializer.Serialize(socketEvent, options));
+        });
     }
 }

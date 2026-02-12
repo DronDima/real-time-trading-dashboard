@@ -80,6 +80,8 @@ export class TradingSessionEffects {
             return of(TradingSessionActions.offerUpdated({ offer: event.payload }));
           case 'OFFER_DELETED':
             return of(TradingSessionActions.offerDeleted({ id: event.payload.id }));
+          case 'OFFER_BATCH':
+            return of(TradingSessionActions.offerBatch(event.payload));
           default:
             return EMPTY;
         }

@@ -1,0 +1,10 @@
+<span class="inline-flex items-center justify-end gap-1 min-w-[5.5rem]">
+  {{ price() | currency:'USD':'symbol':'1.2-2' }}
+  <span class="inline-block w-4 text-center" aria-hidden="true">
+    @if (indicator() === 'up') {
+      <span class="text-green-600">▲</span>
+    } @else if (indicator() === 'down') {
+      <span class="text-red-600">▼</span>
+    }
+  </span>
+</span>
