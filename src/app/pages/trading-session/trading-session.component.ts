@@ -18,6 +18,12 @@ import { HubConnectionState } from '@microsoft/signalr';
 import { TradingSessionStatus } from '../../models/trading-session';
 import { FormatDatePipe } from '../../pipes/format-date.pipe';
 import { getStatusClass } from '../../utils/trading-session.utils';
+import {
+  SortColumn,
+  SortDirection,
+  filterAndSortOffers,
+  getNextSortState
+} from '../../utils/offer-filter-sort.utils';
 import { RootState } from '../../store/root.state';
 import {
   selectCurrentSessionViewModel,
@@ -72,8 +78,48 @@ export class TradingSessionComponent {
   private readonly previousPrices = signal<Record<number, number>>({});
   protected readonly priceChangeIndicators = signal<Record<number, 'up' | 'down'>>({});
 
+  protected readonly sortColumn = signal<SortColumn | null>(null);
+  protected readonly sortDirection = signal<SortDirection>(null);
+  protected readonly filterText = signal<string>('');
+
+  protected readonly filteredAndSortedOffers = computed(() => {
+    const sess = this.session();
+    if (!sess?.offers?.length) return [];
+
+    const res = filterAndSortOffers(
+      sess.offers,
+      this.filterText(),
+      this.sortColumn(),
+      this.sortDirection()
+    );
+    console.log(res);
+
+    return res;
+  });
+
   protected getPriceIndicator(offerId: number): 'up' | 'down' | null {
     return this.priceChangeIndicators()[offerId] ?? null;
+  }
+
+  protected onSort(column: SortColumn): void {
+    const nextState = getNextSortState(
+      this.sortColumn(),
+      this.sortDirection(),
+      column
+    );
+    this.sortColumn.set(nextState.column);
+    this.sortDirection.set(nextState.direction);
+  }
+
+  protected getSortIndicator(column: SortColumn): 'asc' | 'desc' | null {
+    if (this.sortColumn() === column) {
+      return this.sortDirection();
+    }
+    return null;
+  }
+
+  protected onFilterChange(value: string): void {
+    this.filterText.set(value);
   }
 
   constructor() {

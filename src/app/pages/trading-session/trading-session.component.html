@@ -54,20 +54,117 @@
       </div>
 
       <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Offers</h2>
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold text-gray-800">Offers</h2>
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              [value]="filterText()"
+              (input)="onFilterChange($any($event.target).value)"
+              placeholder="Filter by ID, Product, Price, Volume..."
+              class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
         
-        @if (session.offers.length === 0) {
-          <p class="text-gray-500 text-center py-8">No offers available for this session.</p>
+        @if (filteredAndSortedOffers().length === 0) {
+          <p class="text-gray-500 text-center py-8">
+            @if (filterText().trim()) {
+              No offers match your filter criteria.
+            } @else {
+              No offers available for this session.
+            }
+          </p>
         } @else {
           <div class="overflow-x-auto">
             <div class="offers-grid w-full min-w-[800px]">
-              <div class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-left">ID</div>
-              <div class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-left">Product</div>
-              <div class="border-b border-gray-200 py-3 pl-4 pr-8 font-medium text-gray-600 text-right">Price</div>
-              <div class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-right">Volume</div>
-              <div class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-right">Updated</div>
+              <button
+                (click)="onSort('id')"
+                class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-left hover:bg-gray-50 transition-colors flex items-center gap-2"
+              >
+                ID
+                @if (getSortIndicator('id'); as indicator) {
+                  @if (indicator === 'asc') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  }
+                }
+              </button>
+              <button
+                (click)="onSort('product')"
+                class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-left hover:bg-gray-50 transition-colors flex items-center gap-2"
+              >
+                Product
+                @if (getSortIndicator('product'); as indicator) {
+                  @if (indicator === 'asc') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  }
+                }
+              </button>
+              <button
+                (click)="onSort('price')"
+                class="border-b border-gray-200 py-3 pl-4 pr-8 font-medium text-gray-600 text-right hover:bg-gray-50 transition-colors flex items-center justify-end gap-2"
+              >
+                Price
+                @if (getSortIndicator('price'); as indicator) {
+                  @if (indicator === 'asc') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  }
+                }
+              </button>
+              <button
+                (click)="onSort('volume')"
+                class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-right hover:bg-gray-50 transition-colors flex items-center justify-end gap-2"
+              >
+                Volume
+                @if (getSortIndicator('volume'); as indicator) {
+                  @if (indicator === 'asc') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  }
+                }
+              </button>
+              <button
+                (click)="onSort('updatedAt')"
+                class="border-b border-gray-200 py-3 px-4 font-medium text-gray-600 text-right hover:bg-gray-50 transition-colors flex items-center justify-end gap-2"
+              >
+                Updated
+                @if (getSortIndicator('updatedAt'); as indicator) {
+                  @if (indicator === 'asc') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  }
+                }
+              </button>
               
-              @for (offer of session.offers; track offer.id) {
+              @for (offer of filteredAndSortedOffers(); track offer.id) {
                 <app-offer-row 
                   [offer]="offer" 
                   [priceIndicator]="getPriceIndicator(offer.id)" />
